@@ -2,6 +2,8 @@
 #define AVLTREE_H
 
 #include <stack>
+#include <queue>
+
 namespace DataStructures
 {
 	template <class T>
@@ -30,9 +32,9 @@ namespace DataStructures
 
 		public:
 
-		AVLTree();                   // constructor
-		AVLTree(const AVLTree<T>&);  // copy constructor
-		~AVLTree();                  // destructor
+		AVLTree();                                      // constructor
+		AVLTree(const AVLTree<T>&) = delete;            // copy constructor disabled
+		~AVLTree();                                     // destructor
 
 		T* insert(const T&);                            // insert an element into the tree, returns a pointer to an element if it already exists, otherwise returns nullptr
 		T remove(const T&);                             // remove an element from the tree, returns the value removed, if it does not exist an exception is thrown
@@ -65,6 +67,36 @@ namespace DataStructures
 		void twoSubtreeRemove(Node*);                   // removes a node that has two subtrees, assumes caller ahs passed such a node
 
 	};
+
+	template <typename T>
+	AVLTree<T>::AVLTree() : m_size{0}, m_root{nullptr}      
+	{}
+
+	template <typename T>
+	AVLTree<T>::~AVLTree()                                  
+	{
+		if(m_root == nullptr)                        // empty tree condition
+			return;
+
+		typedef AVLTree<T>::Node Node; 
+		std::queue<Node*> queue;
+		queue.push(m_root);                          // add root to the queue
+
+		while(!queue.empty())                        // while queue is not empty
+		{
+			Node* current = queue.front();       
+
+			if(current.left != nullptr)
+				queue.push(current.left);    // add the current node's left child to the queue
+
+			if(current.right != nullptr)
+				queue.push(current.right);   // add the current nodes right child to the queue
+
+			queue.pop();                         // pop the current element off the queue
+			delete current;                      // delete the current element
+		}
+	}
+
 }
 
 #endif
