@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <queue>
+#include <stdexcept>
 
 namespace DataStructures
 {
@@ -69,16 +70,15 @@ namespace DataStructures
 	};
 
 	template <typename T>
-	AVLTree<T>::AVLTree() : m_size{0}, m_root{nullptr}      
-	{}
+	AVLTree<T>::AVLTree() : m_size{0}, m_root{nullptr}   // constructor start //  
+	{}                                                   // constructor end //
 
 	template <typename T>
-	AVLTree<T>::~AVLTree()                                  
+	AVLTree<T>::~AVLTree()                               // deconstructor start // 
 	{
 		if(m_root == nullptr)                        // empty tree condition
 			return;
 
-		typedef AVLTree<T>::Node Node; 
 		std::queue<Node*> queue;
 		queue.push(m_root);                          // add root to the queue
 
@@ -86,17 +86,63 @@ namespace DataStructures
 		{
 			Node* current = queue.front();       
 
-			if(current.left != nullptr)
-				queue.push(current.left);    // add the current node's left child to the queue
+			if(current->left != nullptr)
+				queue.push(current->left);   // add the current node's left child to the queue
 
-			if(current.right != nullptr)
-				queue.push(current.right);   // add the current nodes right child to the queue
+			if(current->right != nullptr)
+				queue.push(current->right);  // add the current nodes right child to the queue
 
 			queue.pop();                         // pop the current element off the queue
 			delete current;                      // delete the current element
 		}
-	}
+	}                                                    // deconstructor end //
 
+	template <typename T>
+	T* AVLTree<T>::insert(const T& newValue)                        // insert function start //
+	{
+		std::stack<Node*> stack{stackNodes(newValue)};
+
+		if(stack.top() != nullptr)                              // if value already exists
+			return &(stack.top()->value);                   // return pointer to its value
+
+		stack.pop();                                            // top most node is nullptr so pop it off
+		Node* parentNode = stack.top();                         // the parent node of new node is the top most node on the stack
+
+		if(parentNode->value > newValue)                        // value is less than parent, making it the left child
+			parentNode->left = new Node{newValue};
+
+		else if(parentNode->value < newValue)                   // value is greater than the parent, making it the right child
+			parentNode->right = new Node{newValue};
+
+		unstackNodes(stack);                                    // update and balance nodes in the stack
+		++m_size;                                               // increment the size
+		return nullptr;                                         // return nullptr for a successful insertion
+	}                                                               // insert function end //
+
+	template <typename T>
+	T AVLTree<T>::remove(const T& value)                                                                      // remove function start //
+	{
+		std::stack<Node*> stack{stackNodes(value)};
+
+		Node* removingNode = stack.top();
+
+		if(removingNode == nullptr)                                                                       // if value was not found, throw an error
+			throw std::runtime_error{"AVLTree remove(), cannot remove value, value does not exist"};   
+		
+		T nodeValue = removingNode->value;                                                                // save the nodes value to return later
+
+		if(removingNode->left == nullptr && removingNode->right == nullptr)                               // the node is a leaf node
+			leafRemove(removingNode);                                                                 // remove the node
+
+		else if(removingNode->left == nullptr || removingNode->right == nullptr)                          // the node has 1 subtree
+			oneSubtreeRemove(removingNode);                                                           // remove the node
+		
+		else                                                                                              // the node has two subtrees
+			twoSubtreeRemove(removingNode);                                                           // remove the node 
+
+		--m_size;                                                                                         // decrement the size
+		return nodeValue;                                                                                 // return the removed nodes value
+	}                                                                                                         // remove function end //
 }
 
 #endif
