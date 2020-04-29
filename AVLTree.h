@@ -143,6 +143,54 @@ namespace DataStructures
 		--m_size;                                                                                         // decrement the size
 		return nodeValue;                                                                                 // return the removed nodes value
 	}                                                                                                         // remove function end //
+
+	template <typename T>
+	T* AVLTree<T>::find(const T& value)                      // find function start //
+	{
+		Node* currentNode = m_root;
+
+		while(true)
+		{
+			if(currentNode == nullptr)     	         // nullptr condition 
+				return nullptr;
+
+			else if(currentNode->value > value)      // if value is less than currentNode's value go left
+				currentNode = currentNode->left; // set the left child of the currentNode to currentNode
+
+			else if(currentNode->value < value)      // if value is greater than currentNode's value go righ
+				currentNode = currentNode->right;// set the right child of the currentNode to currentNode
+
+			else                                     // if currentNode is not nullptr, not less, nor greater, it must be equal, so we found it 
+				return &(currentNode->value);    // return pointer to the value
+		}
+	}                                                        // find function end //
+
+	template <typename T>
+	const T* AVLTree<T>::find(const T& value) const          // const find function start //
+	{
+		Node* currentNode = m_root;
+
+		while(true)
+		{
+			if(currentNode == nullptr)     	         // nullptr condition 
+				return nullptr;
+
+			else if(currentNode->value > value)      // if value is less than currentNode's value go left
+				currentNode = currentNode->left; // set the left child of the currentNode to currentNode
+
+			else if(currentNode->value < value)      // if value is greater than currentNode's value go righ
+				currentNode = currentNode->right;// set the right child of the currentNode to currentNode
+
+			else                                     // if currentNode is not nullptr, not less, nor greater, it must be equal, so we found it 
+				return &(currentNode->value);    // return pointer to the value
+		}                                                 
+	}                                                        // const find function end //
+
+	template <typename T>
+	bool AVLTree<T>::empty() const                           // empty function start //
+	{
+		return (m_root == nullptr && m_size == 0);       // if m_root is nullptr and size is 0, the tree is empty
+	}                                                        // empty function end //
 }
 
 #endif
