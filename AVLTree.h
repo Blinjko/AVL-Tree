@@ -1,6 +1,4 @@
-#ifndef AVLTREE_H
-#define AVLTREE_H
-
+#pragma once
 #include <stack>
 #include <queue>
 #include <stdexcept>
@@ -10,6 +8,7 @@ namespace DataStructures
     template <class T>
     class AVLTree
     {
+        public:
         struct Node
         {
             T value;            // must be comparable
@@ -31,7 +30,7 @@ namespace DataStructures
         std::size_t m_size; // size of the tree, starts at 0
         Node* m_root;       // pointer to the root node, if tree is empty m_root is nullptr
 
-        public:
+//        public:
 
         AVLTree();                                      // constructor
         AVLTree(const AVLTree<T>&) = delete;            // copy constructor disabled
@@ -101,6 +100,12 @@ namespace DataStructures
     template <typename T>
     T* AVLTree<T>::insert(const T& newValue)                    // insert function start //
     {
+        if(m_root == nullptr)                                   // empty tree condition
+        {
+            m_root = new Node{newValue};                        // set the root to the new node
+            return nullptr;                                     // return nullptr for successful insertion
+        }
+
         std::stack<Node*> stack{stackNodes(newValue)};
 
         if(stack.top() != nullptr)                              // if value already exists
@@ -110,10 +115,16 @@ namespace DataStructures
         Node* parentNode = stack.top();                         // the parent node of new node is the top most node on the stack
 
         if(parentNode->value > newValue)                        // value is less than parent, making it the left child
+        {
             parentNode->left = new Node{newValue};
+            parentNode->left->parent = parentNode;              // set the child's parent to parentNode
+        }
 
         else if(parentNode->value < newValue)                   // value is greater than the parent, making it the right child
+        {
             parentNode->right = new Node{newValue};
+            parentNode->right->parent = parentNode;             // set the child's parent to parentNode
+        }
 
         unstackNodes(stack);                                    // update and balance nodes in the stack
         ++m_size;                                               // increment the size
@@ -225,10 +236,10 @@ namespace DataStructures
                 return stack;
 
             else if(currentNode->value > value)       // if the value of the currentNode is greater than the passed value
-                stack.push(currentNode->leftchild);   // then add the currentNodes left child to the stack
+                stack.push(currentNode->left);        // then add the currentNodes left child to the stack
 
             else if(currentNode->value < value)       // if the value of the currentNode is less than than the passed value
-                stack.push(currentNode->rightchild);  // then add the currentNodes right child to the stack
+                stack.push(currentNode->right);       // then add the currentNodes right child to the stack
 
             else                                      // this would only execute if the value of currentNode and the passed value are equal
                 return stack;                         // if currentNode->value == value return the stack
@@ -277,8 +288,97 @@ namespace DataStructures
             node->height = leftHeight+1;
 
         node->balanceFactor = (rightHeight+1) - (leftHeight+1); // calculate the balance factor, rightHeight+1 - leftHeight+1
+    }                                                           // update function end //
+
+    template <typename T>
+    void AVLTree<T>::balance(Node* node)           // balance function start //
+    {
+        if(node == nullptr)                        // nullptr condition to avoid any segmentatio faults
+            return;
+
+        if(node->balanceFactor == -2)              // tree is left heavy
+        {
+            if(node->left->balanceFactor == 1)     // left right case
+                leftRotation(node->left);          // left rotation on the passed node's left child
+
+            rightRotation(node);                   // right rotation on the node
+        }
+
+        else if(node->balanceFactor == 2)          // tree is right heavy
+        {
+            if(node->right->balanceFactor == -1)   // right left case
+                rightRotation(node->right);        // do a right rotation with the passed node's right child
+
+            leftRotation(node);                    // do right rotation on the node
+        }
+    }                                              // balance function end // 
+
+    template <typename T>
+    void AVLTree<T>::rightRotation(Node* A) // rightRotation function start //
+    {
+        if(A == nullptr)                    // if passed node is nullptr return
+            return;
+
+        else if(A->left == nullptr)         // if passed node does not have a left child return
+            return;
+
+        Node* B = A->left;                  // make a variable B, A's current left child
+
+        A->left = B->right;                 // B's right child becomes A's left child
+        if(B->right != nullptr)             // if B's right child is not null makes its parent A
+            B->right->parent = A;
+
+        B->right = A;                       // Make B's right child A 
+        B->parent = A->parent;              // B's parent is now A's parent
+
+        if(B->parent == nullptr)            // if B's new parent is nullptr B is now the root node
+            m_root = B;
+
+        else if(B->parent->left == A)       // if B's parent's left child was A
+            B->parent->left = B;            // make B the left child
+
+        else if(B->parent->right == A)      // if B's parent's right child was A
+            B->parent->right = B;           // make B the right child
+
+
+        A->parent = B;                      // A's parent is now B
+
+        update(A);                          // update A & B
+        update(B);
     }
 
-}
+    template <typename T>
+    void AVLTree<T>::leftRotation(Node* A)  // leftRotation function start //
+    {
+        if(A == nullptr)                    // if passed a nullptr, return
+            return;
 
-#endif
+        else if(A->right == nullptr)        // if passed node doesn't have a right child, return
+            return;
+
+        Node* B = A->right;                 // create a variable B, A's right child
+        
+        A->right = B->left;                 // B's left child is now A's right child
+        
+        if(B->left != nullptr)              // if B's left child is not nullptr, set its parent to A
+            B->left->parent = A;
+
+        B->left = A;                        // make B's left child A
+        B->parent = A->parent;              // make B's parent A's parent
+    
+        if(B->parent == nullptr)            // if B's parent is nullptr, make B the root node
+            m_root = B;
+        
+        else if(B->parent->left == A)       // if B's parent's left child == A
+            B->parent->left = B;            // make B's parent's left child B
+
+        else if(B->parent->right == A)      // if B's parent's right child == A
+            B->parent->right = B;           // make B's parent's right child B
+
+        A->parent = B;                      // make A's parent B
+
+        update(A);                          // update A & B
+        update(B);
+
+    }
+}
