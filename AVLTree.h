@@ -51,30 +51,10 @@ namespace DataStructures
 
         private:
 
-        std::stack<Node*> stackNodes(const T& value)              // trys to find matching node given a value, but every node that is iterated through is added to a stack
-                {                                                 // if matching node is found, the stack is returned, the top most element being the node with the matching value
-                                          // if no matching node is found, a stack will still be returned, but the top most element would be nullptr
+        std::stack<Node*> stackNodes(const T& value);   // trys to find matching node given a value, but every node that is iterated through is added to a stack
+                                                        // if matching node is found, the stack is returned, the top most element being the node with the matching value
+                                                        // if no matching node is found, a stack will still be returned, but the top most element would be nullptr
 
-            std::stack<Node*> stack;                          // create a stack
-            stack.push(m_root);                               // push the root node onto it
-
-            while(true) 
-            {
-                Node* currentNode = stack.front();
-
-                if(currentNode == nullptr)               // if current node is nullptr
-                    return stack;                    // return the stack
-
-                else if(currentNode->value > value)      // if the value is less than currentNode's value
-                    stack.push(currentNode->left);   // push currentNode's left child onto the stack
-
-                else if(currentNode->value < value)      // if the value is greater than currentNode's value
-                    stack.push(currentNode->right);  // push the currentNode's right child onto the stack
-
-                else                                     // if the value is not nullptr, less than, or greater than, it must be equal
-                    return stack;                    // return the stack
-            }
-        }
 
         void unstackNodes(std::stack<Node*>&);          // unstacks the given stack of node pointers, updating and balancing each node as it is unstacked
 
@@ -97,34 +77,34 @@ namespace DataStructures
     template <typename T>
     AVLTree<T>::~AVLTree()                               // deconstructor start // 
     {
-        if(m_root == nullptr)                        // empty tree condition
+        if(m_root == nullptr)                            // empty tree condition
             return;
 
         std::queue<Node*> queue;
-        queue.push(m_root);                          // add root to the queue
+        queue.push(m_root);                              // add root to the queue
 
-        while(!queue.empty())                        // while queue is not empty
+        while(!queue.empty())                            // while queue is not empty
         {
             Node* current = queue.front();       
 
             if(current->left != nullptr)
-                queue.push(current->left);   // add the current node's left child to the queue
+                queue.push(current->left);               // add the current node's left child to the queue
 
             if(current->right != nullptr)
-                queue.push(current->right);  // add the current nodes right child to the queue
+                queue.push(current->right);              // add the current nodes right child to the queue
 
-            queue.pop();                         // pop the current element off the queue
-            delete current;                      // delete the current element
+            queue.pop();                                 // pop the current element off the queue
+            delete current;                              // delete the current element
         }
     }                                                    // deconstructor end //
 
     template <typename T>
-    T* AVLTree<T>::insert(const T& newValue)                        // insert function start //
+    T* AVLTree<T>::insert(const T& newValue)                    // insert function start //
     {
         std::stack<Node*> stack{stackNodes(newValue)};
 
         if(stack.top() != nullptr)                              // if value already exists
-            return &(stack.top()->value);                   // return pointer to its value
+            return &(stack.top()->value);                       // return pointer to its value
 
         stack.pop();                                            // top most node is nullptr so pop it off
         Node* parentNode = stack.top();                         // the parent node of new node is the top most node on the stack
@@ -138,35 +118,37 @@ namespace DataStructures
         unstackNodes(stack);                                    // update and balance nodes in the stack
         ++m_size;                                               // increment the size
         return nullptr;                                         // return nullptr for a successful insertion
-    }                                                               // insert function end //
+    }                                                           // insert function end //
 
     template <typename T>
-    T AVLTree<T>::remove(const T& value)                                                                      // remove function start //
+    T AVLTree<T>::remove(const T& value)                                           // remove function start //
     {
         std::stack<Node*> stack{stackNodes(value)};
 
         Node* removingNode = stack.top();
 
-        if(removingNode == nullptr)                                                                       // if value was not found, throw an error
-            throw std::runtime_error{"AVLTree remove(), cannot remove value, value does not exist"};   
+        if(removingNode == nullptr)                                                // if value was not found, throw an error
+            throw std::runtime_error{
+                "AVLTree remove(), cannot remove value, value does not exist"};   
+
         
-        T nodeValue = removingNode->value;                                                                // save the nodes value to return later
+        T nodeValue = removingNode->value;                                         // save the nodes value to return later
 
-        if(removingNode->left == nullptr && removingNode->right == nullptr)                               // the node is a leaf node
-            leafRemove(removingNode);                                                                 // remove the node
+        if(removingNode->left == nullptr && removingNode->right == nullptr)        // the node is a leaf node
+            leafRemove(removingNode);                                              // remove the node
 
-        else if(removingNode->left == nullptr || removingNode->right == nullptr)                          // the node has 1 subtree
-            oneSubtreeRemove(removingNode);                                                           // remove the node
+        else if(removingNode->left == nullptr || removingNode->right == nullptr)   // the node has 1 subtree
+            oneSubtreeRemove(removingNode);                                        // remove the node
         
-        else                                                                                              // the node has two subtrees
-            twoSubtreeRemove(removingNode);                                                           // remove the node 
+        else                                                                       // the node has two subtrees
+            twoSubtreeRemove(removingNode);                                        // remove the node 
 
-        --m_size;                                                                                         // decrement the size
-        return nodeValue;                                                                                 // return the removed nodes value
-    }                                                                                                         // remove function end //
+        --m_size;                                                                  // decrement the size
+        return nodeValue;                                                          // return the removed nodes value
+    }                                                                              // remove function end //
 
     template <typename T>
-    T* AVLTree<T>::find(const T& value)                      // find function start //
+    T* AVLTree<T>::find(const T& value)               // find function start //
     {
         Node* currentNode = m_root;
 
@@ -176,18 +158,18 @@ namespace DataStructures
                 return nullptr;
 
             else if(currentNode->value > value)      // if value is less than currentNode's value go left
-                currentNode = currentNode->left; // set the left child of the currentNode to currentNode
+                currentNode = currentNode->left;     // set the left child of the currentNode to currentNode
 
             else if(currentNode->value < value)      // if value is greater than currentNode's value go righ
-                currentNode = currentNode->right;// set the right child of the currentNode to currentNode
+                currentNode = currentNode->right;    // set the right child of the currentNode to currentNode
 
             else                                     // if currentNode is not nullptr, not less, nor greater, it must be equal, so we found it 
-                return &(currentNode->value);    // return pointer to the value
+                return &(currentNode->value);        // return pointer to the value
         }
-    }                                                        // find function end //
+    }                                                // find function end //
 
     template <typename T>
-    const T* AVLTree<T>::find(const T& value) const          // const find function start //
+    const T* AVLTree<T>::find(const T& value) const  // const find function start //
     {
         Node* currentNode = m_root;
 
@@ -197,37 +179,106 @@ namespace DataStructures
                 return nullptr;
 
             else if(currentNode->value > value)      // if value is less than currentNode's value go left
-                currentNode = currentNode->left; // set the left child of the currentNode to currentNode
+                currentNode = currentNode->left;     // set the left child of the currentNode to currentNode
 
             else if(currentNode->value < value)      // if value is greater than currentNode's value go righ
-                currentNode = currentNode->right;// set the right child of the currentNode to currentNode
+                currentNode = currentNode->right;    // set the right child of the currentNode to currentNode
 
             else                                     // if currentNode is not nullptr, not less, nor greater, it must be equal, so we found it 
-                return &(currentNode->value);    // return pointer to the value
+                return &(currentNode->value);        // return pointer to the value
         }                                                 
-    }                                                        // const find function end //
+    }                                                // const find function end //
 
     template <typename T>
-    bool AVLTree<T>::empty() const                           // empty function start //
+    bool AVLTree<T>::empty() const                   // empty function start //
     {
-        return (m_root == nullptr && m_size == 0);       // if m_root is nullptr and size is 0, the tree is empty
-    }                                                        // empty function end //
+        return (m_root == nullptr && m_size == 0);   // if m_root is nullptr and size is 0, the tree is empty
+    }                                               // empty function end //
 
     template <typename T>
-    T* AVLTree<T>::root()
+    T* AVLTree<T>::root()         // root function start //
     {
-        if(m_root == nullptr)
-            return nullptr;
-        return &(m_root->value);
+        if(m_root == nullptr)     // if root is a nullptr
+            return nullptr;       // return nullptr
+        return &(m_root->value);  // otherwise return a pointer to the root node's Value
+    }                             // root function end // 
+
+    template <typename T>
+    const T* AVLTree<T>::root() const  // const root function start //
+    {
+        if(m_root == nullptr)          // if root is nullptr
+            return nullptr;            // return nullptr
+        return &(m_root->value);       // otherwise return a pointer to the rood node's value
+    }                                  // end of const root function //
+
+    template <typename T>
+    std::stack<typename AVLTree<T>::Node*> AVLTree<T>::stackNodes(const T& value) 
+    {                                                 // stackNodes function start //
+        std::stack<Node*> stack;                      // create a stack of Node*
+        stack.push(m_root);                           // add the root Node to the stack
+
+        while(true)
+        {
+            Node* currentNode = stack.top();          // make a variable for easier readability, stores top most node on the stack, changes every loop iteration
+
+            if(currentNode == nullptr)                // if the currentNode is nullptr, return the stack
+                return stack;
+
+            else if(currentNode->value > value)       // if the value of the currentNode is greater than the passed value
+                stack.push(currentNode->leftchild);   // then add the currentNodes left child to the stack
+
+            else if(currentNode->value < value)       // if the value of the currentNode is less than than the passed value
+                stack.push(currentNode->rightchild);  // then add the currentNodes right child to the stack
+
+            else                                      // this would only execute if the value of currentNode and the passed value are equal
+                return stack;                         // if currentNode->value == value return the stack
+        }
+    }                                                 // stackNodes function end //
+
+    template <typename T>
+    void AVLTree<T>::unstackNodes(std::stack<Node*>& stack) // unstackNodes function start //
+    {
+        while(!stack.empty())                               // while the stack is not empty 
+        {
+            Node* currentNode = stack.top();                // created currentNode variable which holds the stacks current top most node
+
+            if(currentNode == nullptr)                      // if currentNode == nullptr pop it off the stack
+                stack.pop();
+
+            else                                            // if currentNode is an actual node, then update and balance it, then pop it off
+            {
+                update(currentNode);
+                balance(currentNode);
+                stack.pop();
+            }
+
+        }
+    }                                                       // unstackNodes function end //
+
+    template <typename T>
+    void AVLTree<T>::update(Node* node)                        // update function start //
+    {
+        if(node == nullptr)                                    // if passed value is nullptr return
+            return;
+
+        int leftHeight = -1;
+        int rightHeight = -1;
+
+        if(node->left != nullptr)                               // if the node has a left child get its height
+            leftHeight = node->left->height;
+
+        if(node->right != nullptr)                              // if the node has a right child get its height
+            rightHeight = node->right->height;
+       
+        if(rightHeight >= leftHeight)                           // if rightHeight is greater than leftHeight set the node's height to rightHeight+1
+            node->height = rightHeight+1;
+
+        else if(rightHeight < leftHeight)                       // if rightHeight is less than leftHeight set the node's height to the leftHeight+1
+            node->height = leftHeight+1;
+
+        node->balanceFactor = (rightHeight+1) - (leftHeight+1); // calculate the balance factor, rightHeight+1 - leftHeight+1
     }
 
-    template <typename T>
-    const T* AVLTree<T>::root() const
-    {
-        if(m_root == nullptr)
-            return nullptr;
-        return &(m_root->value);
-    }
 }
 
 #endif
