@@ -46,14 +46,35 @@ namespace DataStructures
 		bool empty() const;                             // returns true if the tree is empty, false if not
 		std::size_t size() const { return m_size; } 	// returns the size of the tree
 
-		T* root() { return m_root; }                    // returns the root node pointer
-		const T* root() const { return m_root; }      	// const version of root() 
+		T* root();                                      // returns the root node pointer
+		const T* root() const;                          // const version of root() 
 
 		private:
 
-		std::stack<Node*> stackNodes(const T&);         // trys to find matching node given a value, but every node that is iterated through is added to a stack
-		                                                // if matching node is found, the stack is returned, the top most element being the node with the matching value
-								// if no matching node is found, a stack will still be returned, but the top most element would be nullptr
+		std::stack<Node*> stackNodes(const T& value)              // trys to find matching node given a value, but every node that is iterated through is added to a stack
+                {		                                          // if matching node is found, the stack is returned, the top most element being the node with the matching value
+								          // if no matching node is found, a stack will still be returned, but the top most element would be nullptr
+
+			std::stack<Node*> stack;                          // create a stack
+			stack.push(m_root);                               // push the root node onto it
+
+			while(true) 
+			{
+				Node* currentNode = stack.front();
+
+				if(currentNode == nullptr)               // if current node is nullptr
+					return stack;                    // return the stack
+
+				else if(currentNode->value > value)      // if the value is less than currentNode's value
+					stack.push(currentNode->left);   // push currentNode's left child onto the stack
+
+				else if(currentNode->value < value)      // if the value is greater than currentNode's value
+					stack.push(currentNode->right);  // push the currentNode's right child onto the stack
+
+				else                                     // if the value is not nullptr, less than, or greater than, it must be equal
+					return stack;                    // return the stack
+			}
+		}
 
 		void unstackNodes(std::stack<Node*>&);          // unstacks the given stack of node pointers, updating and balancing each node as it is unstacked
 
@@ -191,6 +212,22 @@ namespace DataStructures
 	{
 		return (m_root == nullptr && m_size == 0);       // if m_root is nullptr and size is 0, the tree is empty
 	}                                                        // empty function end //
+
+	template <typename T>
+	T* AVLTree<T>::root()
+	{
+		if(m_root == nullptr)
+			return nullptr;
+		return &(m_root->value);
+	}
+
+	template <typename T>
+	const T* AVLTree<T>::root() const
+	{
+		if(m_root == nullptr)
+			return nullptr;
+		return &(m_root->value);
+	}
 }
 
 #endif
