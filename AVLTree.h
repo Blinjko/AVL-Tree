@@ -30,7 +30,7 @@ namespace DataStructures
         std::size_t m_size; // size of the tree, starts at 0
         Node* m_root;       // pointer to the root node, if tree is empty m_root is nullptr
 
-//        public:
+        public:
 
         AVLTree();                                      // constructor
         AVLTree(const AVLTree<T>&) = delete;            // copy constructor disabled
@@ -149,11 +149,15 @@ namespace DataStructures
             leafRemove(removingNode);                                              // remove the node
 
         else if(removingNode->left == nullptr || removingNode->right == nullptr)   // the node has 1 subtree
+        {
             oneSubtreeRemove(removingNode);                                        // remove the node
+            stack.pop();                                                           // pop the removed node off the stack
+        }
         
         else                                                                       // the node has two subtrees
             twoSubtreeRemove(removingNode);                                        // remove the node 
 
+        unstackNodes(stack);                                                       // unstack the nodes, updating and balancing them all
         --m_size;                                                                  // decrement the size
         return nodeValue;                                                          // return the removed nodes value
     }                                                                              // remove function end //
@@ -345,7 +349,7 @@ namespace DataStructures
 
         update(A);                          // update A & B
         update(B);
-    }
+    }                                       // rightRotation function end //
 
     template <typename T>
     void AVLTree<T>::leftRotation(Node* A)  // leftRotation function start //
@@ -380,5 +384,81 @@ namespace DataStructures
         update(A);                          // update A & B
         update(B);
 
+    }                                       // leftRotation function end //
+
+    template <typename T>
+    void AVLTree<T>::leafRemove(Node* node)  // leafRemove function start //
+    {
+        if(node == nullptr)                  // nullptr check
+            return;
+
+        if(node->parent != nullptr)          // if node has a parent
+        {
+            Node* parent = node->parent; 
+
+            if(parent->left == node)         // if node is parent's left child
+                parent->left = nullptr;      // set parent's left child to nullptr
+
+            else if(parent->right == node)   // if node is parent's right child
+                parent->right = nullptr;     // set parent's right child to nullptr
+        }
+
+        delete node;                         // delete the node
+    }                                        // leafRemove function end // 
+
+    template <typename T>
+    void AVLTree<T>::oneSubtreeRemove(Node* node)  // oneSubtreeRemove function start //
+    {
+        if(node == nullptr)                        // nullptr check
+            return;
+        
+        Node* subtree;
+        Node* parent = node->parent;
+
+        if(node->left != nullptr)                  // if node's left child isn't null subtree is the left child
+            subtree = node->left;
+
+        else if(node->right != nullptr)            // if node's right child isn't null subtree is the right child
+            subtree = node->right;
+
+        if(parent != nullptr)                      // if parent isn't nullptr
+        {
+            if(parent->left == node)               // if node was the parent's left child
+                parent->left = subtree;            // make the subtree the parent's left child
+            
+            else if(parent->right == node)         // if the parent's right child was node
+                parent->right = subtree;           // make the subtree the parent's right child
+        }
+
+        subtree->parent = parent;                  // make the subtrees parent the nodes parent
+
+        delete node;                               // delete the node
+    }                                              // oneSubtreeRemove function end //
+
+    template <typename T>
+    void AVLTree<T>::twoSubtreeRemove(Node* node)
+    {
+        if(node == nullptr)
+            return;
+
+        std::stack<Node*> stack;
+
+        Node* comparingNode = node->right;
+
+        while(comparingNode->left != nullptr)
+            comparingNode = comparingNode->left;
+
+        node->value = comparingNode->value;
+
+        if(comparingNode->left == nullptr && comparingNode->right == nullptr)
+            leafRemove(comparingNode);
+
+        else if(comparingNode->left == nullptr || comparingNode->right == nullptr)
+        {
+            oneSubtreeRemove(comparingNode);
+            stack.pop();
+        }
+
+        unstackNodes(stack);
     }
 }
