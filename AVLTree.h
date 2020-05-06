@@ -8,7 +8,6 @@ namespace DataStructures
     template <class T>
     class AVLTree
     {
-        public:
         struct Node
         {
             T value;            // must be comparable
